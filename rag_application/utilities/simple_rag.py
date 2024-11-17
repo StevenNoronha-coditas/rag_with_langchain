@@ -3,21 +3,49 @@ from utilities.db_operations import get_retriever
 from langchain_core.output_parsers import StrOutputParser
 from langchain_groq import ChatGroq
 from langchain_core.runnables import RunnablePassthrough
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from utilities.chat_history import initialize_chat_history, add_message_to_history, get_recent_chat_history
 
-def simple_rag_call(query):
-    prompt = hub.pull("rlm/rag-prompt")
+def simple_rag_call(query, session_id=None):
+    # Initialize or continue chat history
+    chat_history = initialize_chat_history(session_id)
+    
+    # Add user query to chat history
+    add_message_to_history(chat_history, "human", query)
+    
+    # Get recent chat history
+    recent_messages = get_recent_chat_history(chat_history)
+    
     retriever = get_retriever()
 
     def format_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)
     
+    # Create a custom prompt that includes chat history
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are a helpful AI assistant. Use the following context to answer the question, "
+                  "taking into account the chat history if relevant: {context}"),
+        MessagesPlaceholder(variable_name="chat_history"),
+        ("human", "{question}")
+    ])
+    
     llm = ChatGroq(model="llama3-8b-8192")
 
     rag_chain = (
-        {"context": retriever | format_docs, "question": RunnablePassthrough()}
+        {
+            "context": retriever | format_docs,
+            "chat_history": lambda _: recent_messages,
+            "question": RunnablePassthrough()
+        }
         | prompt
         | llm
         | StrOutputParser()
     )
+    
+    # Get response from RAG chain
     result = rag_chain.invoke(query)
-    return result
+    
+    # Add AI response to chat history
+    add_message_to_history(chat_history, "ai", result)
+    
+    return result, chat_history.messages, chat_history._session_id
