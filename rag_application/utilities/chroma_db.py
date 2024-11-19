@@ -8,7 +8,7 @@ from langchain_core.runnables import RunnablePassthrough
 
 load_dotenv()
 
-
+# Used as trial to store embeddings using chroma_db
 def rag_using_chromdb():
     hf = get_embedding_model()
     persistent_directory = "./chroma_storage"

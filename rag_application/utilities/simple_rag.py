@@ -7,13 +7,10 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from utilities.chat_history import initialize_chat_history, add_message_to_history, get_recent_chat_history
 
 def simple_rag_call(query, session_id=None):
-    # Initialize or continue chat history
     chat_history = initialize_chat_history(session_id)
     
-    # Add user query to chat history
     add_message_to_history(chat_history, "human", query)
     
-    # Get recent chat history
     recent_messages = get_recent_chat_history(chat_history)
     
     retriever = get_retriever()
@@ -21,7 +18,6 @@ def simple_rag_call(query, session_id=None):
     def format_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)
     
-    # Create a custom prompt that includes chat history
     prompt = ChatPromptTemplate.from_messages([
         ("system", "You are a helpful AI assistant. Use the following context to answer the question, "
                   "taking into account the chat history if relevant: {context}"),
@@ -42,10 +38,8 @@ def simple_rag_call(query, session_id=None):
         | StrOutputParser()
     )
     
-    # Get response from RAG chain
     result = rag_chain.invoke(query)
     
-    # Add AI response to chat history
     add_message_to_history(chat_history, "ai", result)
     
     return result, chat_history.messages, chat_history._session_id

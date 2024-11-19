@@ -1,0 +1,5 @@
+env/
+.env
+__pycache__/
+chroma_storage/
+first_implementation/

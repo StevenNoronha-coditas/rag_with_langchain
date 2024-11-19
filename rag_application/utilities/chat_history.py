@@ -26,7 +26,6 @@ def initialize_chat_history(session_id=None):
     return chat_history
 
 def get_recent_chat_history(chat_history):
-    # Get last 5 messages from chat history
     messages = chat_history.messages[-5:] if len(chat_history.messages) > 5 else chat_history.messages
     return messages
 
