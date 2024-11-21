@@ -3,7 +3,7 @@ from utilities.simple_rag import simple_rag_call
 load_dotenv()
 
 # Initialize with no session ID for first call
-response, chat_history, session_id = simple_rag_call("What is the dream of the speaker")
+response, chat_history, session_id = simple_rag_call("Tell me about mercedes")
 print("Response:", response)
 print("Session ID:", session_id)
 
